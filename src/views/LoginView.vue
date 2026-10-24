@@ -151,6 +151,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 const isLogin = ref(true)
@@ -171,23 +172,30 @@ const handleLogin = async () => {
   try {
     const response = await axios.post('/api/login', loginForm.value)
     
-    // Lưu token và thông tin user vào localStorage
-    localStorage.setItem('auth_token', response.data.access_token)
-    localStorage.setItem('user_info', JSON.stringify(response.data.user))
+    // Tự động quét mọi định dạng token mà Laravel có thể trả về để lưu an toàn tuyệt đối
+    const token = response.data.access_token || response.data.token || response.data.data?.token
+    const user = response.data.user || response.data.data?.user
+
+    if (token) {
+      localStorage.setItem('auth_token', token)
+    }
+    if (user) {
+      localStorage.setItem('user_info', JSON.stringify(user))
+    }
     
     alert('Đăng nhập thành công!')
 
-    if (response.data.user.role === 'admin') {
+    if (user?.role === 'admin') {
       router.push('/dashboard')
     } else {
       router.push('/')
     }
-  } catch (error) {
-    alert('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!')
+  } catch (error: any) {
+    console.error(error)
+    const msg = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!'
+    alert(msg)
   }
 }
-
-import axios from 'axios' // Đảm bảo đã import axios
 
 const handleRegister = async () => {
   if (registerForm.value.password !== registerForm.value.password_confirmation) {
@@ -196,12 +204,10 @@ const handleRegister = async () => {
   }
   
   try {
-    // Gọi API đăng ký tới Laravel Backend (đã cấu hình baseURL hoặc chạy ở /api)
-    const response = await axios.post('/api/register', registerForm.value)
+    await axios.post('/api/register', registerForm.value)
     
     alert('Đăng ký tài khoản thành công! Dữ liệu đã được lưu vào Database.')
     
-    // Tự động chuyển về tab Đăng nhập và điền sẵn email vừa đăng ký cho tiện
     loginForm.value.email = registerForm.value.email
     isLogin.value = true
   } catch (error: any) {
