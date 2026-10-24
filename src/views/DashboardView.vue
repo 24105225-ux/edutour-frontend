@@ -58,15 +58,15 @@
     <div v-if="currentTab === 'tours'">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Danh sách chương trình tour</h3>
-        <button @click="showAddForm = !showAddForm" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl shadow font-bold transition flex items-center gap-2">
+        <button @click="openAddForm" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl shadow font-bold transition flex items-center gap-2">
           <i :class="showAddForm ? 'fa-solid fa-xmark' : 'fa-solid fa-plus'"></i>
           {{ showAddForm ? 'Đóng form' : 'Thêm Tour Mới' }}
         </button>
       </div>
 
-      <!-- Form Thêm Tour khớp chuẩn Database SQL -->
+      <!-- Form Thêm / Sửa Tour -->
       <div v-if="showAddForm" class="mb-8 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700">
-        <h4 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Thêm chương trình tour mới</h4>
+        <h4 class="text-lg font-bold text-gray-800 dark:text-white mb-4">{{ isEditing ? 'Cập nhật thông tin tour' : 'Thêm chương trình tour mới' }}</h4>
         <form @submit.prevent="submitTour" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tên tour</label>
@@ -100,15 +100,18 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tiêu chuẩn an toàn</label>
             <input v-model="tourForm.safety_protocols" type="text" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
-          <div class="md:col-span-2 pt-2">
+          <div class="md:col-span-2 pt-2 flex gap-3">
             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow transition">
-              Lưu Tour Mới
+              {{ isEditing ? 'Lưu Thay Đổi' : 'Lưu Tour Mới' }}
+            </button>
+            <button type="button" @click="showAddForm = false" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-xl font-bold transition">
+              Hủy
             </button>
           </div>
         </form>
       </div>
 
-      <!-- Bảng danh sách Tour -->
+      <!-- Bảng danh sách Tour kèm nút Sửa & Xóa -->
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
         <div class="overflow-x-auto">
           <table class="min-w-full text-left text-sm whitespace-nowrap">
@@ -132,7 +135,10 @@
                   <span class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-bold">{{ tour.target_level }}</span>
                 </td>
                 <td class="px-6 py-4 font-bold text-emerald-600">{{ Number(tour.base_price).toLocaleString('vi-VN') }}đ</td>
-                <td class="px-6 py-4 text-center">
+                <td class="px-6 py-4 text-center space-x-2">
+                  <button @click="editTour(tour)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa
+                  </button>
                   <button @click="deleteTour(tour.id)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl text-xs font-bold transition">
                     <i class="fa-solid fa-trash-can mr-1"></i> Xóa
                   </button>
@@ -212,6 +218,8 @@ import axios from 'axios'
 const router = useRouter()
 const currentTab = ref('tours')
 const showAddForm = ref(false)
+const isEditing = ref(false)
+const editingId = ref<number | null>(null)
 
 const tours = ref<any[]>([])
 const bookings = ref<any[]>([])
@@ -242,29 +250,61 @@ const fetchTours = async () => {
   }
 }
 
+const openAddForm = () => {
+  isEditing.value = false
+  editingId.value = null
+  tourForm.value = {
+    title: '',
+    slug: '',
+    target_level: 'THCS',
+    base_price: 0,
+    category_id: 1,
+    duration_days: 1,
+    capacity: 100,
+    safety_protocols: 'Y tế đi kèm, 100% bảo hiểm',
+    status: 'published'
+  }
+  showAddForm.value = !showAddForm.value
+}
+
+const editTour = (tour: any) => {
+  isEditing.value = true
+  editingId.value = tour.id
+  tourForm.value = {
+    title: tour.title || '',
+    slug: tour.slug || '',
+    target_level: tour.target_level || 'THCS',
+    base_price: tour.base_price || 0,
+    category_id: tour.category_id || 1,
+    duration_days: tour.duration_days || 1,
+    capacity: tour.capacity || 100,
+    safety_protocols: tour.safety_protocols || 'Y tế đi kèm, 100% bảo hiểm',
+    status: tour.status || 'published'
+  }
+  showAddForm.value = true
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 const submitTour = async () => {
   try {
     const token = localStorage.getItem('auth_token')
-    await axios.post('/api/tours', tourForm.value, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    alert('Thêm tour thành công!')
-    showAddForm.value = false
-    tourForm.value = {
-      title: '',
-      slug: '',
-      target_level: 'THCS',
-      base_price: 0,
-      category_id: 1,
-      duration_days: 1,
-      capacity: 100,
-      safety_protocols: 'Y tế đi kèm, 100% bảo hiểm',
-      status: 'published'
+    const headers = { Authorization: `Bearer ${token}` }
+
+    if (isEditing.value && editingId.value) {
+      await axios.put(`/api/tours/${editingId.value}`, tourForm.value, { headers })
+      alert('Cập nhật tour thành công!')
+    } else {
+      await axios.post('/api/tours', tourForm.value, { headers })
+      alert('Thêm tour thành công!')
     }
+
+    showAddForm.value = false
+    isEditing.value = false
+    editingId.value = null
     fetchTours()
   } catch (error: any) {
     console.error(error.response?.data || error)
-    alert('Thêm tour thất bại! Kiểm tra lại thông tin.')
+    alert('Thao tác thất bại! Kiểm tra lại thông tin.')
   }
 }
 
