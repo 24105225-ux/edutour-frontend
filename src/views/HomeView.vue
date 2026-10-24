@@ -158,25 +158,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useApp } from '../composables/useApp'
+import axios from 'axios'
 
 const { t } = useApp()
 
-const stats = ref({ schools: 6, students: 60, tours: 20 })
+const stats = ref({ schools: 5, students: 100, tours: 10 })
 const searchQuery = ref('')
 const selectedLevel = ref('')
 const selectedSubject = ref('')
 
-const programs = ref([
-  { id: 1, level: 'THCS', subject: 'LỊCH SỬ', title: 'Khám phá Thành Cổ Loa', desc: 'Tìm hiểu kiến trúc quân sự thành cổ và truyền thống giữ nước thời Âu Lạc.', location: 'Cổ Loa, Hà Nội', safety: 'Có nhân viên y tế', price: '450.000', image: 'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg' },
-  { id: 2, level: 'THPT', subject: 'SINH HỌC', title: 'Thực địa Sinh thái Pù Luông', desc: 'Phân tích hệ sinh thái rừng nhiệt đới, khảo sát sức chứa môi trường và nhận diện các loài thực vật đặc hữu.', location: 'Khu bảo tồn thiên nhiên Pù Luông, Thanh Hóa', safety: 'Có trạm sơ cứu và kiểm lâm đi kèm', price: '850.000', image: 'https://images.vietnamtourism.gov.vn/vn//images/2023/thang12/0512.pu_luong.jpg' },
-  { id: 3, level: 'THCS', subject: 'ĐỊA LÝ', title: 'Kiến tạo Địa chất Tràng An', desc: 'Khảo sát địa hình đá vôi karst, hệ thống hang động và ý thức bảo vệ di sản thiên nhiên thế giới.', location: 'Quần thể danh thắng Tràng An, Ninh Bình', safety: '100% mặc áo phao, thuyền cứu hộ đi kèm', price: '650.000', image: 'https://bizweb.dktcdn.net/100/006/093/files/thien-ha-2-57d166a1-e72c-4466-9f65-6364e2cf15ea.jpg' },
-  { id: 4, level: 'THPT', subject: 'CÔNG NGHỆ', title: 'Không gian Làng lụa Vạn Phúc', desc: 'Quan sát quy trình ươm tơ, dệt lụa thủ công truyền thống và trải nghiệm tương tác với nghệ nhân.', location: 'Làng lụa Vạn Phúc, Hà Nội', safety: 'Giám sát không gian xưởng dệt an toàn', price: '350.000', image: 'https://langngheviet.com.vn/stores/news_dataimages/langnghevietcomvn/042021/26/09/lang-lua-van-phuc-31-.6337.jpg' },
-  { id: 5, level: 'Tiểu học', subject: 'LỊCH SỬ', title: 'Truyền thống Tôn Sư Trọng Đạo', desc: 'Tìm hiểu trường đại học đầu tiên của Việt Nam, nhận thức sâu sắc đạo lý hiếu học.', location: 'Văn Miếu - Quốc Tử Giám, Hà Nội', safety: 'Bảo vệ khu di tích hỗ trợ phân luồng', price: '300.000', image: 'https://statics.vinpearl.com/van-mieu-mon-van-mieu-quoc-tu-giam_1752765402.jpg' },
-  { id: 6, level: 'THPT', subject: 'TRẢI NGHIỆM', title: 'Phát triển Kỹ năng HORECA & Sinh thái', desc: 'Thực hành kỹ năng làm việc nhóm, tự phục vụ lưu trú cơ bản và tìm hiểu mạng lưới giao thông thủy.', location: 'Khu du lịch sinh thái Cần Thơ, Cần Thơ', safety: 'Huấn luyện viên kỹ năng sống giám sát', price: '1.250.000', image: 'https://www.vietnambooking.com/wp-content/uploads/2017/08/du-lich-can-tho-30-8-2017-sinh-thai.jpg' }
-])
+// Danh sách tours được lấy động từ Database Backend (thay vì mảng tĩnh cứng)
+const programs = ref<any[]>([])
+
+const fetchHomeTours = async () => {
+  try {
+    const response = await axios.get('/api/tours')
+    const rawData = response.data.data || response.data
+    
+    // Map dữ liệu từ Database SQL sang cấu trúc hiển thị của trang chủ
+    programs.value = rawData.map((item: any) => ({
+      id: item.id,
+      level: item.target_level,
+      subject: item.category_id == 1 ? 'LỊCH SỬ' : (item.category_id == 2 ? 'SINH HỌC' : (item.category_id == 3 ? 'ĐỊA LÝ' : 'CÔNG NGHỆ')),
+      title: item.title,
+      desc: item.safety_protocols || 'Chương trình trải nghiệm thực tế giáo dục học đường.',
+      location: 'Hà Nội & Các tỉnh lân cận',
+      safety: item.safety_protocols || 'Y tế đi kèm, 100% bảo hiểm',
+      price: Number(item.base_price).toLocaleString('vi-VN'),
+      image: item.image || 'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg'
+    }))
+    
+    // Cập nhật lại số lượng tour thống kê trên banner chính
+    stats.value.tours = programs.value.length
+  } catch (error) {
+    console.error("Lỗi tải danh sách tour trang chủ:", error)
+  }
+}
 
 const filteredPrograms = computed(() => {
   return programs.value.filter(item => {
@@ -189,7 +209,7 @@ const filteredPrograms = computed(() => {
   })
 })
 
-// Dữ liệu Thư viện ảnh (Khách chủ động tự lướt thủ công 3 ảnh)
+// Dữ liệu Thư viện ảnh
 const galleryIndex = ref(0)
 const gallerySlides = [
   { image: 'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg', title: 'Khám phá kiến trúc quân sự Cổ Loa', tag: 'Lịch sử' },
@@ -211,10 +231,14 @@ const visibleGallerySlides = computed(() => {
 const nextGallerySlide = () => { galleryIndex.value = (galleryIndex.value + 1) % gallerySlides.length }
 const prevGallerySlide = () => { galleryIndex.value = (galleryIndex.value - 1 + gallerySlides.length) % gallerySlides.length }
 
-// Dữ liệu Đánh giá từ nhà trường (Hiển thị dạng Grid 3 card cố định cực đẹp)
+// Dữ liệu Đánh giá từ nhà trường
 const testimonials = [
   { quote: 'Chương trình thực địa tại Pù Luông được tổ chức cực kỳ khoa học, an toàn và bám sát kiến thức Sinh học lớp 10. Học sinh rất hào hứng.', author: 'Thầy Nguyễn Văn Hùng', role: 'Hiệu phó Trường THPT Chu Văn An', initial: 'TH' },
   { quote: 'Hệ thống duyệt đơn và minh bạch hồ sơ y tế giúp nhà trường hoàn toàn yên tâm khi phụ trách đoàn hàng trăm học sinh đi tham quan.', author: 'Cô Đoàn Thị Lan', role: 'Trưởng ban Hoạt động Trải nghiệm THCS Cầu Giấy', initial: 'ĐL' },
   { quote: 'Quy trình đặt tour và thanh toán cực kỳ tinh gọn. Giao diện trực quan, hỗ trợ tra cứu lịch sử đơn hàng rất tiện lợi cho giáo viên.', author: 'Thầy Trần Minh Đức', role: 'Giáo viên chủ nhiệm Khối 12 THPT Phan Đình Phùng', initial: 'TM' }
 ]
+
+onMounted(() => {
+  fetchHomeTours()
+})
 </script>
