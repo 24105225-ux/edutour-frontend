@@ -78,17 +78,22 @@ const order = ref<any>(null)
 
 const fetchOrderDetail = async () => {
   try {
-    const response = await axios.get(`/api/bookings`)
-    const list = response.data.data || response.data
-    // Tìm đúng đơn hàng vừa tạo theo ID trên URL
-    const found = list.find((item: any) => item.id == orderId)
-    if (found) {
-      order.value = found
-    } else if (list.length > 0) {
-      order.value = list[list.length - 1] // Lấy đơn hàng mới nhất làm fallback an toàn
-    }
+    // Gọi thẳng API lấy chi tiết theo ID của đơn hàng trên URL
+    const response = await axios.get(`/api/bookings/${orderId}`)
+    // Hỗ trợ cả 2 chuẩn trả về: response.data.data hoặc response.data
+    order.value = response.data.data || response.data
   } catch (error) {
     console.error("Lỗi lấy thông tin đơn hàng:", error)
+    // Fallback: nếu lỗi thì gọi danh sách để bốc phần tử cuối
+    try {
+      const listRes = await axios.get(`/api/bookings`)
+      const list = listRes.data.data || listRes.data
+      if (Array.isArray(list) && list.length > 0) {
+        order.value = list[list.length - 1]
+      }
+    } catch (err) {
+      console.error("Fallback error:", err)
+    }
   }
 }
 
