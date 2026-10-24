@@ -149,8 +149,12 @@ const submitBooking = async () => {
       status: 'Chờ thanh toán'
     }
 
-    const response = await axios.post('/api/bookings', payload)
-    alert('Đăng ký đặt tour thành công! Vui lòng hoàn tất thanh toán.')
+    const response = await axios.post('/api/bookings', payload, {
+      headers: {
+        'Authorization': `Bearer ${token}`, // Nhét thẻ token vào đây
+        'Accept': 'application/json'
+      }
+    })
     
     router.push(`/checkout/${response.data.data.id}`)
   } catch (error) {
