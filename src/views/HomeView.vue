@@ -178,20 +178,25 @@ const fetchHomeTours = async () => {
     const response = await axios.get('/api/tours')
     const rawData = response.data.data || response.data
     
-    // Mảng danh sách các ảnh đẹp thực tế tương ứng với các chủ đề du lịch học đường
-    const sampleImages = [
-      'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg', // Cổ Loa
-      'https://images.vietnamtourism.gov.vn/vn//images/2023/thang12/0512.pu_luong.jpg', // Pù Luông
-      'https://bizweb.dktcdn.net/100/006/093/files/thien-ha-2-57d166a1-e72c-4466-9f65-6364e2cf15ea.jpg', // Tràng An
-      'https://langngheviet.com.vn/stores/news_dataimages/langnghevietcomvn/042021/26/09/lang-lua-van-phuc-31-.6337.jpg', // Vạn Phúc
-      'https://statics.vinpearl.com/van-mieu-mon-van-mieu-quoc-tu-giam_1752765402.jpg', // Văn Miếu
-      'https://www.vietnambooking.com/wp-content/uploads/2017/08/du-lich-can-tho-30-8-2017-sinh-thai.jpg' // Cần Thơ
-    ]
+    // Hàm thông minh tự động map ảnh theo từ khóa trong tên Tour
+    const getTourImage = (title: string) => {
+      const t = title.toLowerCase();
+      if (t.includes('cổ loa')) return 'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg';
+      if (t.includes('pù luông')) return 'https://images.vietnamtourism.gov.vn/vn//images/2023/thang12/0512.pu_luong.jpg';
+      if (t.includes('tràng an')) return 'https://bizweb.dktcdn.net/100/006/093/files/thien-ha-2-57d166a1-e72c-4466-9f65-6364e2cf15ea.jpg';
+      if (t.includes('vạn phúc')) return 'https://langngheviet.com.vn/stores/news_dataimages/langnghevietcomvn/042021/26/09/lang-lua-van-phuc-31-.6337.jpg';
+      if (t.includes('văn miếu')) return 'https://statics.vinpearl.com/van-mieu-mon-van-mieu-quoc-tu-giam_1752765402.jpg';
+      if (t.includes('bát tràng')) return 'https://battrang24h.com/upload/images/Kinh-Nghiem-du-lich-lang-gom-bat-trang/du-lich-lang-gom-bat-trang-1.jpg';
+      if (t.includes('ba vì') || t.includes('quân đội')) return 'https://vcdn1-dulich.vnecdn.net/2020/09/04/bavi-1599207604-1599207615-5660-1599208035.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
+      if (t.includes('sầm sơn')) return 'https://vcdn1-dulich.vnecdn.net/2022/06/03/Sam-Son-2-1654247547.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
+      if (t.includes('cúc phương')) return 'https://vcdn1-dulich.vnecdn.net/2022/04/28/Rung-Cuc-Phuong-10-1651139438.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
+      if (t.includes('dân tộc học')) return 'https://upload.wikimedia.org/wikipedia/commons/9/90/Vietnam_Museum_of_Ethnology_2.jpg';
+      
+      // Ảnh mặc định cho các tour thêm mới không thuộc danh sách trên
+      return 'https://images.unsplash.com/photo-1596422846543-74c6eb2491a9?q=80&w=1000&auto=format&fit=crop'; 
+    }
 
-    programs.value = rawData.map((item: any, index: number) => {
-      // Tự động phân bổ ảnh xoay vòng theo ID hoặc index để các tour khác nhau có ảnh khác nhau
-      const assignedImage = sampleImages[item.id % sampleImages.length] || sampleImages[index % sampleImages.length]
-
+    programs.value = rawData.map((item: any) => {
       return {
         id: item.id,
         level: item.target_level,
@@ -201,7 +206,7 @@ const fetchHomeTours = async () => {
         location: 'Hà Nội & Các tỉnh lân cận',
         safety: item.safety_protocols || 'Y tế đi kèm, 100% bảo hiểm',
         price: Number(item.base_price).toLocaleString('vi-VN'),
-        image: assignedImage // Lấy ảnh phân bổ động
+        image: getTourImage(item.title) // Gọi hàm map ảnh theo tên tour
       }
     })
     
@@ -210,7 +215,6 @@ const fetchHomeTours = async () => {
     console.error("Lỗi tải danh sách tour trang chủ:", error)
   }
 }
-
 const filteredPrograms = computed(() => {
   return programs.value.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
