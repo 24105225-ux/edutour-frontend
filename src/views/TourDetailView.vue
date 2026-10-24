@@ -8,15 +8,15 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <span class="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full uppercase">
-            {{ tour.subject }} - {{ tour.level }}
+            {{ tour.subject || 'CHUYÊN ĐỀ' }} - {{ tour.target_level || tour.level || 'HỌC SINH' }}
           </span>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mt-3 mb-4">{{ tour.title }}</h1>
           <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">{{ tour.description || 'Chương trình trải nghiệm học tập thực tế dành cho học sinh.' }}</p>
           
           <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
             <div><strong class="text-gray-900 dark:text-white">Địa điểm:</strong> {{ tour.location || 'Đang cập nhật' }}</div>
-            <div><strong class="text-gray-900 dark:text-white">Tiêu chuẩn an toàn:</strong> {{ tour.safety || 'Đội ngũ hướng dẫn viên và y tế chuyên nghiệp' }}</div>
-            <div><strong class="text-gray-900 dark:text-white">Giá vé / học sinh:</strong> <span class="text-red-600 dark:text-red-400 font-bold text-lg">{{ Number(tour.price).toLocaleString('vi-VN') }}đ</span></div>
+            <div><strong class="text-gray-900 dark:text-white">Tiêu chuẩn an toàn:</strong> {{ tour.safety_protocols || tour.safety || 'Đội ngũ hướng dẫn viên và y tế chuyên nghiệp' }}</div>
+            <div><strong class="text-gray-900 dark:text-white">Giá vé / học sinh:</strong> <span class="text-red-600 dark:text-red-400 font-bold text-lg">{{ Number(tour.base_price || tour.price).toLocaleString('vi-VN') }}đ</span></div>
           </div>
         </div>
 
@@ -74,22 +74,25 @@ const tourId = Number(route.params.id)
 interface Tour {
   id: number
   title: string
-  subject: string
-  level: string
-  price: number | string
+  subject?: string
+  level?: string
+  target_level?: string
+  price?: number | string
+  base_price?: number | string
   location?: string
   safety?: string
+  safety_protocols?: string
   description?: string
 }
 
 // Dữ liệu mẫu dự phòng (fallback) khớp hoàn toàn với trang chủ để không bao giờ bị trắng trang
 const fallbackPrograms: Record<number, Tour> = {
-  1: { id: 1, level: 'THCS', subject: 'LỊCH SỬ', title: 'Khám phá Thành Cổ Loa', desc: 'Tìm hiểu kiến trúc quân sự thành cổ và truyền thống giữ nước thời Âu Lạc.', location: 'Cổ Loa, Hà Nội', safety: 'Có nhân viên y tế', price: 450000 },
-  2: { id: 2, level: 'THPT', subject: 'SINH HỌC', title: 'Thực địa Sinh thái Pù Luông', desc: 'Phân tích hệ sinh thái rừng nhiệt đới, khảo sát sức chứa môi trường và nhận diện các loài thực vật đặc hữu.', location: 'Khu bảo tồn thiên nhiên Pù Luông, Thanh Hóa', safety: 'Có trạm sơ cứu và kiểm lâm đi kèm', price: 850000 },
-  3: { id: 3, level: 'THCS', subject: 'ĐỊA LÝ', title: 'Kiến tạo Địa chất Tràng An', desc: 'Khảo sát địa hình đá vôi karst, hệ thống hang động và ý thức bảo vệ di sản thiên nhiên thế giới.', location: 'Quần thể danh thắng Tràng An, Ninh Bình', safety: '100% mặc áo phao, thuyền cứu hộ đi kèm', price: 650000 },
-  4: { id: 4, level: 'THPT', subject: 'CÔNG NGHỆ', title: 'Không gian Làng lụa Vạn Phúc', desc: 'Quan sát quy trình ươm tơ, dệt lụa thủ công truyền thống và trải nghiệm tương tác với nghệ nhân.', location: 'Làng lụa Vạn Phúc, Hà Nội', safety: 'Giám sát không gian xưởng dệt an toàn', price: 350000 },
-  5: { id: 5, level: 'Tiểu học', subject: 'LỊCH SỬ', title: 'Truyền thống Tôn Sư Trọng Đạo', desc: 'Tìm hiểu trường đại học đầu tiên của Việt Nam, nhận thức sâu sắc đạo lý hiếu học.', location: 'Văn Miếu - Quốc Tử Giám, Hà Nội', safety: 'Bảo vệ khu di tích hỗ trợ phân luồng', price: 300000 },
-  6: { id: 6, level: 'THPT', subject: 'TRẢI NGHIỆM', title: 'Phát triển Kỹ năng HORECA & Sinh thái', desc: 'Thực hành kỹ năng làm việc nhóm, tự phục vụ lưu trú cơ bản và tìm hiểu mạng lưới giao thông thủy.', location: 'Khu du lịch sinh thái Cần Thơ, Cần Thơ', safety: 'Huấn luyện viên kỹ năng sống giám sát', price: 1250000 }
+  1: { id: 1, level: 'THCS', subject: 'LỊCH SỬ', title: 'Khám phá Thành Cổ Loa', description: 'Tìm hiểu kiến trúc quân sự thành cổ và truyền thống giữ nước thời Âu Lạc.', location: 'Cổ Loa, Hà Nội', safety: 'Có nhân viên y tế', price: 450000 },
+  2: { id: 2, level: 'THPT', subject: 'SINH HỌC', title: 'Thực địa Sinh thái Pù Luông', description: 'Phân tích hệ sinh thái rừng nhiệt đới, khảo sát sức chứa môi trường và nhận diện các loài thực vật đặc hữu.', location: 'Khu bảo tồn thiên nhiên Pù Luông, Thanh Hóa', safety: 'Có trạm sơ cứu và kiểm lâm đi kèm', price: 850000 },
+  3: { id: 3, level: 'THCS', subject: 'ĐỊA LÝ', title: 'Kiến tạo Địa chất Tràng An', description: 'Khảo sát địa hình đá vôi karst, hệ thống hang động và ý thức bảo vệ di sản thiên nhiên thế giới.', location: 'Quần thể danh thắng Tràng An, Ninh Bình', safety: '100% mặc áo phao, thuyền cứu hộ đi kèm', price: 650000 },
+  4: { id: 4, level: 'THPT', subject: 'CÔNG NGHỆ', title: 'Không gian Làng lụa Vạn Phúc', description: 'Quan sát quy trình ươm tơ, dệt lụa thủ công truyền thống và trải nghiệm tương tác với nghệ nhân.', location: 'Làng lụa Vạn Phúc, Hà Nội', safety: 'Giám sát không gian xưởng dệt an toàn', price: 350000 },
+  5: { id: 5, level: 'Tiểu học', subject: 'LỊCH SỬ', title: 'Truyền thống Tôn Sư Trọng Đạo', description: 'Tìm hiểu trường đại học đầu tiên của Việt Nam, nhận thức sâu sắc đạo lý hiếu học.', location: 'Văn Miếu - Quốc Tử Giám, Hà Nội', safety: 'Bảo vệ khu di tích hỗ trợ phân luồng', price: 300000 },
+  6: { id: 6, level: 'THPT', subject: 'TRẢI NGHIỆM', title: 'Phát triển Kỹ năng HORECA & Sinh thái', description: 'Thực hành kỹ năng làm việc nhóm, tự phục vụ lưu trú cơ bản và tìm hiểu mạng lưới giao thông thủy.', location: 'Khu du lịch sinh thái Cần Thơ, Cần Thơ', safety: 'Huấn luyện viên kỹ năng sống giám sát', price: 1250000 }
 }
 
 const tour = ref<Tour | null>(null)
@@ -103,7 +106,8 @@ const bookingForm = ref({
 
 const calculatedTotal = computed(() => {
   if (!tour.value) return 0
-  return Number(tour.value.price) * (Number(bookingForm.value.number_of_students) || 0)
+  const activePrice = Number(tour.value.base_price || tour.value.price || 0)
+  return activePrice * (Number(bookingForm.value.number_of_students) || 0)
 })
 
 const fetchTourDetail = async () => {
@@ -112,7 +116,6 @@ const fetchTourDetail = async () => {
     tour.value = response.data
   } catch (error) {
     console.warn("Không gọi được API, sử dụng dữ liệu mẫu cục bộ:", error)
-    // Nếu API lỗi hoặc chưa có trên database, tự động lấy dữ liệu mẫu theo ID tương ứng
     tour.value = fallbackPrograms[tourId] || {
       id: tourId,
       title: 'Chương trình Trải nghiệm Giáo dục',
@@ -127,8 +130,6 @@ const fetchTourDetail = async () => {
 }
 
 const submitBooking = async () => {
-  // Kiểm tra xem khách đã đăng nhập chưa (có thể dùng chung token hoặc lưu riêng token khách)
-  // Ở đây chúng ta kiểm tra token đăng nhập trong localStorage
   const token = localStorage.getItem('auth_token')
   if (!token) {
     alert('Vui lòng đăng nhập tài khoản trước khi tiến hành đặt tour!')
@@ -151,7 +152,6 @@ const submitBooking = async () => {
     const response = await axios.post('/api/bookings', payload)
     alert('Đăng ký đặt tour thành công! Vui lòng hoàn tất thanh toán.')
     
-    // Điều hướng sang trang thanh toán của đơn hàng vừa tạo
     router.push(`/checkout/${response.data.data.id}`)
   } catch (error) {
     console.error("Lỗi khi gửi đơn đặt tour:", error)
