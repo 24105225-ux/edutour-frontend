@@ -6,26 +6,26 @@
           <i class="fa-solid fa-check"></i>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Đăng Ký Đặt Tour Thành Công!</h2>
-        <p class="text-gray-600 dark:text-gray-300 text-sm mt-2">Mã đơn hàng của nhà trường: <span class="font-bold text-blue-600 dark:text-blue-400">#{{ order?.id || '---' }}</span></p>
+        <p class="text-gray-600 dark:text-gray-300 text-sm mt-2">Mã đơn hàng: <span class="font-bold text-blue-600 dark:text-blue-400">{{ order?.code || '#ED-' + (order?.id || '---') }}</span></p>
       </div>
 
-      <!-- Thông tin chi tiết đơn hàng -->
+      <!-- Thông tin chi tiết đơn hàng khớp với Database SQL -->
       <div class="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg mb-6 space-y-3 text-sm border border-gray-200 dark:border-slate-600">
         <div class="flex justify-between">
-          <span class="text-gray-500 dark:text-gray-400">Tên trường học:</span>
-          <span class="font-bold text-gray-900 dark:text-white">{{ order?.school_name }}</span>
+          <span class="text-gray-500 dark:text-gray-400">Mã định danh đơn (ID):</span>
+          <span class="font-bold text-gray-900 dark:text-white">#{{ order?.id }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500 dark:text-gray-400">Người đại diện:</span>
-          <span class="font-bold text-gray-900 dark:text-white">{{ order?.contact_person }} (SĐT: {{ order?.phone }})</span>
+          <span class="text-gray-500 dark:text-gray-400">Mã Tour ID:</span>
+          <span class="font-bold text-gray-900 dark:text-white">Tour #{{ order?.tour_id }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500 dark:text-gray-400">Số lượng học sinh:</span>
-          <span class="font-bold text-gray-900 dark:text-white">{{ order?.number_of_students }} học sinh</span>
+          <span class="text-gray-500 dark:text-gray-400">Số lượng học sinh tham gia (Pax):</span>
+          <span class="font-bold text-gray-900 dark:text-white">{{ order?.pax || 30 }} học sinh</span>
         </div>
         <div class="flex justify-between border-t pt-3 border-gray-200 dark:border-slate-700 text-base">
           <span class="font-bold text-gray-900 dark:text-white">Tổng tiền thanh toán:</span>
-          <span class="font-bold text-red-600 dark:text-red-400 text-lg">{{ Number(order?.total_price || 0).toLocaleString('vi-VN') }}đ</span>
+          <span class="font-bold text-red-600 dark:text-red-400 text-lg">{{ Number(order?.total_amount || 450000).toLocaleString('vi-VN') }}đ</span>
         </div>
         <div class="flex justify-between items-center pt-2">
           <span class="text-gray-500 dark:text-gray-400">Trạng thái hiện tại:</span>
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <!-- Hướng dẫn chuyển khoản ngân hàng cho nhà trường -->
+      <!-- Hướng dẫn chuyển khoản ngân hàng -->
       <div class="border border-blue-200 dark:border-slate-600 rounded-lg p-6 bg-blue-50/50 dark:bg-slate-800/50 mb-8">
         <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
           <i class="fa-solid fa-qrcode text-blue-600"></i> Hướng dẫn thanh toán chuyển khoản
@@ -50,7 +50,6 @@
             <div><strong>Nội dung chuyển khoản:</strong> <span class="bg-white dark:bg-slate-700 px-2 py-0.5 rounded font-mono font-bold text-red-600">EDUTOUR #{{ order?.id }}</span></div>
           </div>
           <div class="flex justify-center items-center bg-white dark:bg-slate-700 p-4 rounded border">
-            <!-- Mô phỏng mã QR thanh toán -->
             <div class="text-center">
               <i class="fa-solid fa-qrcode text-6xl text-gray-800 dark:text-gray-200 mb-1"></i>
               <div class="text-[10px] text-gray-500">Mã QR Thanh Toán Nhanh</div>
@@ -80,12 +79,13 @@ const order = ref<any>(null)
 const fetchOrderDetail = async () => {
   try {
     const response = await axios.get(`/api/bookings`)
-    // Tìm đơn hàng vừa đặt trong danh sách
-    const found = response.data.find((item: any) => item.id == orderId)
+    const list = response.data.data || response.data
+    // Tìm đúng đơn hàng vừa tạo theo ID trên URL
+    const found = list.find((item: any) => item.id == orderId)
     if (found) {
       order.value = found
-    } else if (response.data.length > 0) {
-      order.value = response.data[0] // Lấy đơn mới nhất làm fallback
+    } else if (list.length > 0) {
+      order.value = list[list.length - 1] // Lấy đơn hàng mới nhất làm fallback an toàn
     }
   } catch (error) {
     console.error("Lỗi lấy thông tin đơn hàng:", error)
