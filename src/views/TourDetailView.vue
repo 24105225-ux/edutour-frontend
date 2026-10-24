@@ -149,13 +149,15 @@ const submitBooking = async () => {
       status: 'Chờ thanh toán'
     }
 
+    // PHẢI CÓ ĐOẠN HEADERS NÀY THÌ LARAVEL MỚI NHẬN DIỆN ĐƯỢC TÀI KHOẢN ĐĂNG NHẬP
     const response = await axios.post('/api/bookings', payload, {
       headers: {
-        'Authorization': `Bearer ${token}`, // Nhét thẻ token vào đây
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       }
     })
-    
+
+    alert('Đăng ký đặt tour thành công! Vui lòng hoàn tất thanh toán.')
     router.push(`/checkout/${response.data.data.id}`)
   } catch (error) {
     console.error("Lỗi khi gửi đơn đặt tour:", error)
