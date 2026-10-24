@@ -178,20 +178,33 @@ const fetchHomeTours = async () => {
     const response = await axios.get('/api/tours')
     const rawData = response.data.data || response.data
     
-    // Map dữ liệu từ Database SQL sang cấu trúc hiển thị của trang chủ
-    programs.value = rawData.map((item: any) => ({
-      id: item.id,
-      level: item.target_level,
-      subject: item.category_id == 1 ? 'LỊCH SỬ' : (item.category_id == 2 ? 'SINH HỌC' : (item.category_id == 3 ? 'ĐỊA LÝ' : 'CÔNG NGHỆ')),
-      title: item.title,
-      desc: item.safety_protocols || 'Chương trình trải nghiệm thực tế giáo dục học đường.',
-      location: 'Hà Nội & Các tỉnh lân cận',
-      safety: item.safety_protocols || 'Y tế đi kèm, 100% bảo hiểm',
-      price: Number(item.base_price).toLocaleString('vi-VN'),
-      image: item.image || 'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg'
-    }))
+    // Mảng danh sách các ảnh đẹp thực tế tương ứng với các chủ đề du lịch học đường
+    const sampleImages = [
+      'https://upload.wikimedia.org/wikipedia/commons/6/62/An_Duong_Vuong_Temple_Gate_Co_Loa.jpg', // Cổ Loa
+      'https://images.vietnamtourism.gov.vn/vn//images/2023/thang12/0512.pu_luong.jpg', // Pù Luông
+      'https://bizweb.dktcdn.net/100/006/093/files/thien-ha-2-57d166a1-e72c-4466-9f65-6364e2cf15ea.jpg', // Tràng An
+      'https://langngheviet.com.vn/stores/news_dataimages/langnghevietcomvn/042021/26/09/lang-lua-van-phuc-31-.6337.jpg', // Vạn Phúc
+      'https://statics.vinpearl.com/van-mieu-mon-van-mieu-quoc-tu-giam_1752765402.jpg', // Văn Miếu
+      'https://www.vietnambooking.com/wp-content/uploads/2017/08/du-lich-can-tho-30-8-2017-sinh-thai.jpg' // Cần Thơ
+    ]
+
+    programs.value = rawData.map((item: any, index: number) => {
+      // Tự động phân bổ ảnh xoay vòng theo ID hoặc index để các tour khác nhau có ảnh khác nhau
+      const assignedImage = sampleImages[item.id % sampleImages.length] || sampleImages[index % sampleImages.length]
+
+      return {
+        id: item.id,
+        level: item.target_level,
+        subject: item.category_id == 1 ? 'LỊCH SỬ' : (item.category_id == 2 ? 'SINH HỌC' : (item.category_id == 3 ? 'ĐỊA LÝ' : 'CÔNG NGHỆ')),
+        title: item.title,
+        desc: item.safety_protocols || 'Chương trình trải nghiệm thực tế giáo dục học đường.',
+        location: 'Hà Nội & Các tỉnh lân cận',
+        safety: item.safety_protocols || 'Y tế đi kèm, 100% bảo hiểm',
+        price: Number(item.base_price).toLocaleString('vi-VN'),
+        image: assignedImage // Lấy ảnh phân bổ động
+      }
+    })
     
-    // Cập nhật lại số lượng tour thống kê trên banner chính
     stats.value.tours = programs.value.length
   } catch (error) {
     console.error("Lỗi tải danh sách tour trang chủ:", error)
