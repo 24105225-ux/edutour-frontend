@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tắt ép khung mặc định của Vue để Tailwind chạy full màn hình */
+body, #app {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: left !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cấu hình màu sắc khi kích hoạt Dark Mode */
+.dark body, .dark #app { background-color: #0f172a !important; color: #f1f5f9 !important; }
+.dark .bg-white, .dark [class*="bg-white"] { background-color: #1e293b !important; color: #f1f5f9 !important; }
+.dark h1, .dark h2, .dark h3, .dark h4, .dark p, .dark span, .dark div.uppercase { color: #f1f5f9 !important; }
+.dark .text-gray-600, .dark [class*="text-gray-"] { color: #94a3b8 !important; }
