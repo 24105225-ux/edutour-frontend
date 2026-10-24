@@ -11,7 +11,7 @@
       </button>
     </div>
 
-    <!-- KHỐI THỐNG KÊ TỔNG QUAN (Xóa khoảng trống, tạo điểm nhấn) -->
+    <!-- KHỐI THỐNG KÊ TỔNG QUAN -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-between">
         <div>
@@ -64,7 +64,7 @@
         </button>
       </div>
 
-      <!-- Form Thêm Tour -->
+      <!-- Form Thêm Tour khớp chuẩn Database SQL -->
       <div v-if="showAddForm" class="mb-8 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700">
         <h4 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Thêm chương trình tour mới</h4>
         <form @submit.prevent="submitTour" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -78,11 +78,27 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cấp học (target_level)</label>
-            <input v-model="tourForm.target_level" type="text" placeholder="THCS, THPT, Tiểu học..." required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+            <select v-model="tourForm.target_level" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="Tiểu học">Tiểu học</option>
+              <option value="THCS">THCS</option>
+              <option value="THPT">THPT</option>
+            </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Giá cơ bản (VNĐ)</label>
-            <input v-model="tourForm.base_price" type="number" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+            <input v-model.number="tourForm.base_price" type="number" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Thời gian (Số ngày)</label>
+            <input v-model.number="tourForm.duration_days" type="number" min="1" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sức chứa (Capacity)</label>
+            <input v-model.number="tourForm.capacity" type="number" min="10" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tiêu chuẩn an toàn</label>
+            <input v-model="tourForm.safety_protocols" type="text" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
           <div class="md:col-span-2 pt-2">
             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow transition">
@@ -203,9 +219,13 @@ const bookings = ref<any[]>([])
 const tourForm = ref({
   title: '',
   slug: '',
-  target_level: '',
+  target_level: 'THCS',
   base_price: 0,
-  category_id: 1
+  category_id: 1,
+  duration_days: 1,
+  capacity: 100,
+  safety_protocols: 'Y tế đi kèm, 100% bảo hiểm',
+  status: 'published'
 })
 
 // Tính tổng doanh thu từ danh sách bookings
@@ -230,10 +250,21 @@ const submitTour = async () => {
     })
     alert('Thêm tour thành công!')
     showAddForm.value = false
-    tourForm.value = { title: '', slug: '', target_level: '', base_price: 0, category_id: 1 }
+    tourForm.value = {
+      title: '',
+      slug: '',
+      target_level: 'THCS',
+      base_price: 0,
+      category_id: 1,
+      duration_days: 1,
+      capacity: 100,
+      safety_protocols: 'Y tế đi kèm, 100% bảo hiểm',
+      status: 'published'
+    }
     fetchTours()
-  } catch (error) {
-    alert('Thêm tour thất bại!')
+  } catch (error: any) {
+    console.error(error.response?.data || error)
+    alert('Thêm tour thất bại! Kiểm tra lại thông tin.')
   }
 }
 
