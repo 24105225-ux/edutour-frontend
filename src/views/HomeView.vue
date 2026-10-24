@@ -186,11 +186,11 @@ const fetchHomeTours = async () => {
       if (t.includes('tràng an')) return 'https://bizweb.dktcdn.net/100/006/093/files/thien-ha-2-57d166a1-e72c-4466-9f65-6364e2cf15ea.jpg';
       if (t.includes('vạn phúc')) return 'https://langngheviet.com.vn/stores/news_dataimages/langnghevietcomvn/042021/26/09/lang-lua-van-phuc-31-.6337.jpg';
       if (t.includes('văn miếu')) return 'https://statics.vinpearl.com/van-mieu-mon-van-mieu-quoc-tu-giam_1752765402.jpg';
-      if (t.includes('bát tràng')) return 'https://battrang24h.com/upload/images/Kinh-Nghiem-du-lich-lang-gom-bat-trang/du-lich-lang-gom-bat-trang-1.jpg';
-      if (t.includes('ba vì') || t.includes('quân đội')) return 'https://vcdn1-dulich.vnecdn.net/2020/09/04/bavi-1599207604-1599207615-5660-1599208035.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
-      if (t.includes('sầm sơn')) return 'https://vcdn1-dulich.vnecdn.net/2022/06/03/Sam-Son-2-1654247547.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
-      if (t.includes('cúc phương')) return 'https://vcdn1-dulich.vnecdn.net/2022/04/28/Rung-Cuc-Phuong-10-1651139438.jpg?w=1200&h=0&q=100&dpr=1&fit=crop';
-      if (t.includes('dân tộc học')) return 'https://upload.wikimedia.org/wikipedia/commons/9/90/Vietnam_Museum_of_Ethnology_2.jpg';
+      if (t.includes('bát tràng')) return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuvoG4zoS0ElVtl8AE-I0qJ7kYEU4ZjMil6TR1FgGRdfiWzB3ZEKkJvAU&s=10';
+      if (t.includes('ba vì') || t.includes('quân đội')) return 'https://hockyquandoi.org.vn/wp-content/uploads/2025/02/chuong-trinh-2.jpg';
+      if (t.includes('sầm sơn')) return 'https://truongxanh.edu.vn/wp-content/uploads/2025/03/sam-son-retreat-trai-he-a1-a2-1.jpg';
+      if (t.includes('cúc phương')) return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-7gnHc49jlKa93MgTXtVJ-qZvW1SCUGHZygkZ_bAotyzl4tyDklIFcog&s=10';
+      if (t.includes('dân tộc học')) return 'https://media.baocaobang.vn/upload/image/202605/medium/167713_bao_tang_dth_18344330.jpg';
       
       // Ảnh mặc định cho các tour thêm mới không thuộc danh sách trên
       return 'https://images.unsplash.com/photo-1596422846543-74c6eb2491a9?q=80&w=1000&auto=format&fit=crop'; 
