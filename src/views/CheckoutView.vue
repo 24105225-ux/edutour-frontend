@@ -38,8 +38,20 @@
       <!-- Hướng dẫn chuyển khoản ngân hàng -->
       <div class="border border-blue-200 dark:border-slate-600 rounded-lg p-6 bg-blue-50/50 dark:bg-slate-800/50 mb-8">
         <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          <div class="flex justify-center items-center bg-white dark:bg-slate-700 p-2 rounded border">
-            <!-- Thay thế icon bằng ảnh VietQR động quét được trực tiếp -->
+          <i class="fa-solid fa-qrcode text-blue-600"></i> Hướng dẫn thanh toán chuyển khoản
+        </h3>
+        <p class="text-xs text-gray-600 dark:text-gray-300 mb-4">Vui lòng sử dụng ứng dụng ngân hàng quét mã QR hoặc chuyển khoản theo thông tin dưới đây để hoàn tất thủ tục giữ chỗ:</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm items-center">
+          <div class="space-y-2 text-gray-700 dark:text-gray-300">
+            <div><strong>Ngân hàng:</strong> Techcombank (Chi nhánh Hà Nội)</div>
+            <div><strong>Số tài khoản:</strong> <span class="text-blue-600 font-bold">19036888888888</span></div>
+            <div><strong>Chủ tài khoản:</strong> QUY HOẠCH DU LỊCH SỐ EDUTOUR</div>
+            <div><strong>Nội dung chuyển khoản:</strong> <span class="bg-white dark:bg-slate-700 px-2 py-0.5 rounded font-mono font-bold text-red-600">EDUTOUR #{{ order?.id }}</span></div>
+          </div>
+          
+          <!-- Khung hiển thị ảnh VietQR động chuẩn xác -->
+          <div class="flex justify-center items-center bg-white dark:bg-slate-700 p-4 rounded border">
             <div class="text-center">
               <img 
                 :src="`https://img.vietqr.io/image/TCB-19036888888888-compact2.png?amount=${order?.total_amount || 450000}&addInfo=EDUTOUR%20%23${order?.id || ''}&accountName=QUY%20HOẠCH%20DU%20LỊCH%20SỐ%20EDUTOUR`" 
@@ -47,22 +59,6 @@
                 class="w-48 h-48 object-contain mx-auto"
               />
               <div class="text-[10px] text-gray-500 mt-1">Quét mã QR qua App Ngân hàng</div>
-            </div>
-          </div>
-        </h3>
-        <p class="text-xs text-gray-600 dark:text-gray-300 mb-4">Vui lòng sử dụng ứng dụng ngân hàng quét mã QR hoặc chuyển khoản theo thông tin dưới đây để hoàn tất thủ tục giữ chỗ:</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div class="space-y-2 text-gray-700 dark:text-gray-300">
-            <div><strong>Ngân hàng:</strong> Techcombank (Chi nhánh Hà Nội)</div>
-            <div><strong>Số tài khoản:</strong> <span class="text-blue-600 font-bold">19036888888888</span></div>
-            <div><strong>Chủ tài khoản:</strong> QUY HOẠCH DU LỊCH SỐ EDUTOUR</div>
-            <div><strong>Nội dung chuyển khoản:</strong> <span class="bg-white dark:bg-slate-700 px-2 py-0.5 rounded font-mono font-bold text-red-600">EDUTOUR #{{ order?.id }}</span></div>
-          </div>
-          <div class="flex justify-center items-center bg-white dark:bg-slate-700 p-4 rounded border">
-            <div class="text-center">
-              <i class="fa-solid fa-qrcode text-6xl text-gray-800 dark:text-gray-200 mb-1"></i>
-              <div class="text-[10px] text-gray-500">Mã QR Thanh Toán Nhanh</div>
             </div>
           </div>
         </div>
@@ -88,13 +84,10 @@ const order = ref<any>(null)
 
 const fetchOrderDetail = async () => {
   try {
-    // Gọi thẳng API lấy chi tiết theo ID của đơn hàng trên URL
     const response = await axios.get(`/api/bookings/${orderId}`)
-    // Hỗ trợ cả 2 chuẩn trả về: response.data.data hoặc response.data
     order.value = response.data.data || response.data
   } catch (error) {
     console.error("Lỗi lấy thông tin đơn hàng:", error)
-    // Fallback: nếu lỗi thì gọi danh sách để bốc phần tử cuối
     try {
       const listRes = await axios.get(`/api/bookings`)
       const list = listRes.data.data || listRes.data
