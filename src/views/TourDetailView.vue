@@ -130,9 +130,11 @@ const fetchTourDetail = async () => {
 }
 
 const submitBooking = async () => {
-  const token = localStorage.getItem('auth_token')
+  // Quét tất cả các key có thể có trong localStorage để không bao giờ bị rỗng
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('access_token')
+  
   if (!token) {
-    alert('Vui lòng đăng nhập tài khoản trước khi tiến hành đặt tour!')
+    alert('Vui lòng đăng nhập lại tài khoản trước khi tiến hành đặt tour!')
     router.push('/login')
     return
   }
@@ -149,7 +151,6 @@ const submitBooking = async () => {
       status: 'Chờ thanh toán'
     }
 
-    // PHẢI CÓ ĐOẠN HEADERS NÀY THÌ LARAVEL MỚI NHẬN DIỆN ĐƯỢC TÀI KHOẢN ĐĂNG NHẬP
     const response = await axios.post('/api/bookings', payload, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -160,8 +161,8 @@ const submitBooking = async () => {
     alert('Đăng ký đặt tour thành công! Vui lòng hoàn tất thanh toán.')
     router.push(`/checkout/${response.data.data.id}`)
   } catch (error) {
-    console.error("Lỗi khi gửi đơn đặt tour:", error)
-    alert('Có lỗi xảy ra, vui lòng kiểm tra lại kết nối backend.')
+    console.error("Lỗi khi gửi đơn đặt tour:", error.response?.data || error)
+    alert('Có lỗi xảy ra: ' + (error.response?.data?.message || 'Kiểm tra lại kết nối backend.'))
   }
 }
 
