@@ -38,7 +38,17 @@
       <!-- Hướng dẫn chuyển khoản ngân hàng -->
       <div class="border border-blue-200 dark:border-slate-600 rounded-lg p-6 bg-blue-50/50 dark:bg-slate-800/50 mb-8">
         <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-qrcode text-blue-600"></i> Hướng dẫn thanh toán chuyển khoản
+          <div class="flex justify-center items-center bg-white dark:bg-slate-700 p-2 rounded border">
+            <!-- Thay thế icon bằng ảnh VietQR động quét được trực tiếp -->
+            <div class="text-center">
+              <img 
+                :src="`https://img.vietqr.io/image/TCB-19036888888888-compact2.png?amount=${order?.total_amount || 450000}&addInfo=EDUTOUR%20%23${order?.id || ''}&accountName=QUY%20HOẠCH%20DU%20LỊCH%20SỐ%20EDUTOUR`" 
+                alt="Mã QR Thanh Toán" 
+                class="w-48 h-48 object-contain mx-auto"
+              />
+              <div class="text-[10px] text-gray-500 mt-1">Quét mã QR qua App Ngân hàng</div>
+            </div>
+          </div>
         </h3>
         <p class="text-xs text-gray-600 dark:text-gray-300 mb-4">Vui lòng sử dụng ứng dụng ngân hàng quét mã QR hoặc chuyển khoản theo thông tin dưới đây để hoàn tất thủ tục giữ chỗ:</p>
         
