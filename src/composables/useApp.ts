@@ -1,63 +1,241 @@
-import { ref } from 'vue'
+import { ref, reactive, watch } from 'vue'
 
-const isDark = ref(false)
-const isEnglish = ref(false)
+// Khai báo state toàn cục (Singleton) để mọi component dùng chung trạng thái
+const isDark = ref(localStorage.getItem('edutour_theme') === 'dark')
+const isEnglish = ref(localStorage.getItem('edutour_lang') === 'en')
 
-const dict: Record<string, string> = {
-  "Đăng nhập hệ thống": "System Login",
-  "Hành Trình Trải Nghiệm - Gắn Liền Mục Tiêu Giáo Dục": "Experiential Journey - Connecting Educational Goals",
-  "Nền tảng kết nối Nhà trường, Phụ huynh và Đơn vị tổ chức. Đảm bảo an toàn, minh bạch hồ sơ y tế và bám sát khung chương trình GDPT.": "Platform connecting Schools, Parents, and Organizers. Ensuring safety, medical records compliance, and adherence to the GDPT curriculum.",
-  "TRƯỜNG HỌC": "SCHOOLS", "HỌC SINH": "STUDENTS", "CHƯƠNG TRÌNH": "PROGRAMS",
-  "Danh Mục Chương Trình Tiêu Biểu": "Featured Programs Catalog",
-  "Ánh xạ trực tiếp từ yêu cầu cần đạt của Bộ GD&ĐT.": "Directly mapped from the requirements of the Ministry of Education and Training.",
-  "Tìm tên tour, điểm đến...": "Search tour name, destination...",
-  "Xem chi tiết": "View details", "LỊCH SỬ": "HISTORY", "SINH HỌC": "BIOLOGY", "ĐỊA LÝ": "GEOGRAPHY", "CÔNG NGHỆ": "TECHNOLOGY", "TRẢI NGHIỆM": "EXPERIENCE",
-  "Khám phá Thành Cổ Loa": "Explore Co Loa Citadel",
-  "Tìm hiểu kiến trúc quân sự thành cổ và truyền thống giữ nước thời Âu Lạc.": "Learn about ancient citadel military architecture and the tradition of defending the country.",
-  "Cổ Loa, Hà Nội": "Co Loa, Hanoi", "Có nhân viên y tế": "Medical staff available",
-  "Thực địa Sinh thái Pù Luông": "Pu Luong Ecological Fieldtrip",
-  "Phân tích hệ sinh thái rừng nhiệt đới, khảo sát sức chứa môi trường và nhận diện các loài thực vật đặc hữu.": "Analyze tropical forest ecosystems, survey environmental carrying capacity, and identify endemic plant species.",
-  "Khu bảo tồn thiên nhiên Pù Luông, Thanh Hóa": "Pu Luong Nature Reserve, Thanh Hoa",
-  "Có trạm sơ cứu và kiểm lâm đi kèm": "First aid station and rangers included",
-  "Kiến tạo Địa chất Tràng An": "Trang An Geological Formation",
-  "Khảo sát địa hình đá vôi karst, hệ thống hang động và ý thức bảo vệ di sản thiên nhiên thế giới.": "Survey karst limestone topography, cave systems, and world heritage conservation awareness.",
-  "Quần thể danh thắng Tràng An, Ninh Bình": "Trang An Scenic Landscape Complex, Ninh Binh",
-  "100% mặc áo phao, thuyền cứu hộ đi kèm": "100% life jackets worn, rescue boats included",
-  "Không gian Làng lụa Vạn Phúc": "Van Phuc Silk Village Space",
-  "Quan sát quy trình ươm tơ, dệt lụa thủ công truyền thống và trải nghiệm tương tác với nghệ nhân.": "Observe the traditional manual silk weaving process and interact with artisans.",
-  "Làng lụa Vạn Phúc, Hà Nội": "Van Phuc Silk Village, Hanoi",
-  "Giám sát không gian xưởng dệt an toàn": "Safe weaving workshop space supervision",
-  "Truyền thống Tôn Sư Trọng Đạo": "Tradition of Respecting Teachers",
-  "Tìm hiểu trường đại học đầu tiên của Việt Nam, nhận thức sâu sắc đạo lý hiếu học.": "Learn about Vietnam's first university, gaining a deep understanding of the philosophy of learning.",
-  "Văn Miếu - Quốc Tử Giám, Hà Nội": "Temple of Literature, Hanoi",
-  "Bảo vệ khu di tích hỗ trợ phân luồng": "Relic site security assisting with traffic flow",
-  "Phát triển Kỹ năng HORECA & Sinh thái": "HORECA & Ecological Skills Development",
-  "Thực hành kỹ năng làm việc nhóm, tự phục vụ lưu trú cơ bản và tìm hiểu mạng lưới giao thông thủy.": "Practice teamwork skills, basic self-service accommodation, and learn about the waterway transport network.",
-  "Khu du lịch sinh thái Cần Thơ, Cần Thơ": "Can Tho Ecotourism Area, Can Tho",
-  "Huấn luyện viên kỹ năng sống giám sát": "Life skills coach supervision"
+// 1. Từ điển chuẩn cho các thuật ngữ cố định trên giao diện (nhảy tức thì 0ms)
+const staticDictionary: Record<string, string> = {
+  'Nền tảng chuẩn hóa du lịch học đường': 'Standardized School Tourism Platform',
+  'Hành Trình Trải Nghiệm - Gắn Liền Mục Tiêu Giáo Dục': 'Experiential Journey - Connecting Educational Goals',
+  'Nền tảng kết nối Nhà trường, Phụ huynh và Đơn vị tổ chức. Đảm bảo an toàn, minh bạch hồ sơ y tế và bám sát khung chương trình GDPT.': 'Platform connecting Schools, Parents, and Organizers. Ensuring safety, medical records compliance, and adherence to the GDPT curriculum.',
+  'TRƯỜNG HỌC': 'SCHOOLS',
+  'HỌC SINH': 'STUDENTS',
+  'CHƯƠNG TRÌNH': 'PROGRAMS',
+  'Tra cứu đơn hàng': 'Order Tracking',
+  'Đánh giá tour': 'Tour Reviews',
+  'Đổi Giao Diện': 'Dark Mode',
+  '☀️ Giao Diện Sáng': '☀️ Light Mode',
+  '🌙 Đổi Giao Diện': '🌙 Dark Mode',
+  'Đăng nhập hệ thống': 'System Login',
+  'Đăng xuất': 'Logout',
+  'Tài khoản': 'Account',
+  'Khám phá theo lĩnh vực môn học:': 'Explore by academic subject:',
+  'Tất cả lĩnh vực': 'All Subjects',
+  'Lịch sử - Văn hóa': 'History - Culture',
+  'Sinh học - Môi trường': 'Biology - Environment',
+  'Địa lý - Địa chất': 'Geography - Geology',
+  'Khoa học - Công nghệ': 'Science - Technology',
+  'LỊCH SỬ': 'HISTORY',
+  'SINH HỌC': 'BIOLOGY',
+  'ĐỊA LÝ': 'GEOGRAPHY',
+  'CÔNG NGHỆ': 'TECHNOLOGY',
+  'TRẢI NGHIỆM': 'EXPERIENCE',
+  'Danh Mục Chương Trình Tiêu Biểu': 'Featured Program Catalog',
+  'Ánh xạ trực tiếp từ yêu cầu cần đạt của Bộ GD&ĐT.': 'Directly mapped to the Ministry of Education & Training requirements.',
+  'Tìm tên tour, điểm đến...': 'Search tour name, destination...',
+  'Tất cả cấp học': 'All Grade Levels',
+  'Tiểu học': 'Primary School',
+  'THCS': 'Secondary (THCS)',
+  'THPT': 'High School (THPT)',
+  'Cấp: Tiểu học': 'Level: Primary',
+  'Cấp: THCS': 'Level: Secondary',
+  'Cấp: THPT': 'Level: High School',
+  'Hà Nội & Các tỉnh lân cận': 'Hanoi & Neighboring Provinces',
+  'Y tế đi kèm, 100% bảo hiểm': 'Medical staff included, 100% insured',
+  'Xem chi tiết': 'View Details',
+  'Khoảnh Khắc Trải Nghiệm Thực Tế': 'Real-World Experiential Moments',
+  'Bấm nút điều hướng để xem các góc máy ghi lại hành trình thực địa.': 'Click navigation buttons to view moments captured during field trips.',
+  'Trước': 'Prev',
+  'Sau': 'Next',
+  'Đánh Giá Từ Ban Giám Hiệu & Giáo Viên': 'Reviews from School Boards & Teachers',
+  'Sự tín nhiệm của các nhà trường là minh chứng rõ nét nhất cho chất lượng dịch vụ.': 'The trust of schools is the clearest testament to our service quality.',
+  'Về trang chủ': 'Back to Home'
+}
+
+// 2. Bộ nhớ đệm lưu các câu dịch tự động từ API (bao gồm cả dữ liệu từ Database)
+const savedCache = JSON.parse(localStorage.getItem('edutour_i18n_cache') || '{}')
+const dynamicCache = reactive<Record<string, string>>(savedCache)
+const pendingRequests = new Set<string>()
+
+// Lưu trữ text gốc tiếng Việt của các thẻ DOM để khôi phục khi bấm về Tiếng Việt
+const originalTextMap = new WeakMap<Node, string>()
+let observer: MutationObserver | null = null
+let debounceTimer: any = null
+
+// Kiểm tra xem chuỗi có chứa ký tự tiếng Việt không
+const hasVietnamese = (str: string) => {
+  return /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(str)
+}
+
+// Hàm gọi Google Translate API miễn phí cho các đoạn text chưa có trong từ điển
+const translateViaAPI = async (text: string): Promise<string> => {
+  const cleanText = text.trim()
+  if (!cleanText || staticDictionary[cleanText] || dynamicCache[cleanText]) {
+    return staticDictionary[cleanText] || dynamicCache[cleanText] || text
+  }
+
+  if (pendingRequests.has(cleanText)) return text
+  pendingRequests.add(cleanText)
+
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl=en&dt=t&q=${encodeURIComponent(cleanText)}`
+    const res = await fetch(url)
+    const data = await res.json()
+    const translated = data[0].map((item: any) => item[0]).join('')
+    
+    if (translated) {
+      dynamicCache[cleanText] = translated
+      localStorage.setItem('edutour_i18n_cache', JSON.stringify(dynamicCache))
+      return translated
+    }
+  } catch (e) {
+    console.warn('Auto-translate fallback:', e)
+  } finally {
+    pendingRequests.delete(cleanText)
+  }
+  return text
+}
+
+// 3. Bộ quét toàn bộ DOM trên trang web để dịch tự động (kể cả chỗ không bọc hàm t)
+const scanAndTranslateDOM = async () => {
+  if (typeof document === 'undefined' || !document.body) return
+
+  // Dịch các ô input placeholder
+  const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]')
+  inputs.forEach(async (el: any) => {
+    if (!el.dataset.viPlaceholder) {
+      el.dataset.viPlaceholder = el.placeholder
+    }
+    const orig = el.dataset.viPlaceholder
+    if (isEnglish.value) {
+      el.placeholder = staticDictionary[orig] || dynamicCache[orig] || await translateViaAPI(orig)
+    } else {
+      el.placeholder = orig
+    }
+  })
+
+  // Quét toàn bộ Text Node trên trang
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      const parent = node.parentElement
+      if (!parent) return NodeFilter.FILTER_REJECT
+      const tag = parent.tagName.toLowerCase()
+      if (['script', 'style', 'noscript'].includes(tag)) return NodeFilter.FILTER_REJECT
+      // Không dịch chính cái nút đổi ngôn ngữ
+      if (node.nodeValue?.includes('English') || node.nodeValue?.includes('Tiếng Việt')) {
+        return NodeFilter.FILTER_REJECT
+      }
+      return NodeFilter.FILTER_ACCEPT
+    }
+  })
+
+  const nodesToProcess: Text[] = []
+  let currentNode = walker.nextNode()
+  while (currentNode) {
+    nodesToProcess.push(currentNode as Text)
+    currentNode = walker.nextNode()
+  }
+
+  for (const textNode of nodesToProcess) {
+    const currentVal = textNode.nodeValue || ''
+    const trimmed = currentVal.trim()
+    if (!trimmed) continue
+
+    // Lưu lại bản gốc tiếng Việt nếu chưa lưu
+    if (!originalTextMap.has(textNode) && (hasVietnamese(trimmed) || staticDictionary[trimmed])) {
+      originalTextMap.set(textNode, currentVal)
+    }
+
+    const originalVal = originalTextMap.get(textNode)
+    if (!originalVal) continue
+
+    const origTrimmed = originalVal.trim()
+
+    if (isEnglish.value) {
+      // Nếu đã có trong từ điển hoặc cache thì thay thế ngay
+      const fastTrans = staticDictionary[origTrimmed] || dynamicCache[origTrimmed]
+      if (fastTrans) {
+        const newVal = originalVal.replace(origTrimmed, fastTrans)
+        if (textNode.nodeValue !== newVal) textNode.nodeValue = newVal
+      } else if (hasVietnamese(origTrimmed)) {
+        // Nếu là câu mới (ví dụ tour mới từ DB), gọi API dịch tự động
+        translateViaAPI(origTrimmed).then((trans) => {
+          if (isEnglish.value && trans !== origTrimmed) {
+            textNode.nodeValue = originalVal.replace(origTrimmed, trans)
+          }
+        })
+      }
+    } else {
+      // Khôi phục về tiếng Việt gốc
+      if (textNode.nodeValue !== originalVal) {
+        textNode.nodeValue = originalVal
+      }
+    }
+  }
+}
+
+// Kích hoạt bộ theo dõi DOM tự động mỗi khi chuyển trang hoặc tải API xong
+const startDOMObserver = () => {
+  if (observer || typeof window === 'undefined') return
+  observer = new MutationObserver(() => {
+    if (!isEnglish.value) return
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      scanAndTranslateDOM()
+    }, 150)
+  })
+  observer.observe(document.body, { childList: true, subtree: true })
 }
 
 export function useApp() {
-  const t = (text: string) => {
-    if (!isEnglish.value) return text;
-    return dict[text] || text;
-  }
-  const toggleLanguage = () => { isEnglish.value = !isEnglish.value; }
-  const toggleTheme = () => {
-    isDark.value = !isDark.value;
-    if (isDark.value) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }
   const initTheme = () => {
-    if (localStorage.getItem('theme') === 'dark') {
-      isDark.value = true;
-      document.documentElement.classList.add('dark');
+    if (isDark.value) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    startDOMObserver()
+    if (isEnglish.value) {
+      setTimeout(() => scanAndTranslateDOM(), 200)
     }
   }
-  return { isDark, isEnglish, t, toggleLanguage, toggleTheme, initTheme }
+
+  const toggleTheme = () => {
+    isDark.value = !isDark.value
+    localStorage.setItem('edutour_theme', isDark.value ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', isDark.value)
+  }
+
+  const toggleLanguage = () => {
+    isEnglish.value = !isEnglish.value
+    localStorage.setItem('edutour_lang', isEnglish.value ? 'en' : 'vi')
+    setTimeout(() => scanAndTranslateDOM(), 50)
+  }
+
+  // Hàm t() dùng trong template vẫn hoạt động bình thường và tự động học từ mới
+  const t = (key: string) => {
+    if (!key || !isEnglish.value) return key
+    const clean = key.trim()
+    if (staticDictionary[clean]) return staticDictionary[clean]
+    if (dynamicCache[clean]) return dynamicCache[clean]
+    
+    if (hasVietnamese(clean)) {
+      translateViaAPI(clean)
+    }
+    return key
+  }
+
+  watch(isEnglish, () => {
+    setTimeout(() => scanAndTranslateDOM(), 50)
+  })
+
+  return {
+    isDark,
+    isEnglish,
+    t,
+    initTheme,
+    toggleTheme,
+    toggleLanguage
+  }
 }
