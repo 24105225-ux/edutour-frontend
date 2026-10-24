@@ -5,7 +5,6 @@ import DashboardView from '../views/DashboardView.vue'
 import BookingView from '../views/BookingView.vue' // Import trang quản lý thanh toán
 import TourDetailView from '../views/TourDetailView.vue'
 import CheckoutView from '../views/CheckoutView.vue'
-import MyBookingsView from '../views/MyBookingsView.vue'
 import FeedbackView from '../views/FeedbackView.vue'
 
 // Thêm vào mảng routes:
@@ -37,8 +36,7 @@ const router = createRouter({
             component: BookingView
         },
         { path: '/tour/:id', name: 'tour-detail', component: TourDetailView }, // Đã thêm dấu phẩy phân tách đầy đủ giữa các phần tử trong mảng
-        { path: '/checkout/:id', name: 'checkout', component: CheckoutView }, // Đã thêm dấu phẩy phân tách đầy đủ giữa các phần tử trong mảng
-        { path: '/my-bookings', name: 'my-bookings', component: MyBookingsView },
+        { path: '/checkout/:id', name: 'checkout', component: CheckoutView }, // Đã thêm dấu phẩy phân tách đầy đủ giữa các phần tử trong mản
         { path: '/feedback', name: 'feedback', component: FeedbackView }
     ]
 })

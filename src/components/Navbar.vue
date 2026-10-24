@@ -15,9 +15,6 @@
         <div class="hidden md:flex items-center space-x-4">
           
           <!-- Các liên kết điều hướng chính -->
-          <RouterLink to="/my-bookings" class="text-gray-200 hover:text-white font-medium text-sm transition">
-            {{ t('Tra cứu đơn hàng') }}
-          </RouterLink>
           <RouterLink to="/feedback" class="text-gray-200 hover:text-white font-medium text-sm transition">
             {{ t('Đánh giá tour') }}
           </RouterLink>
