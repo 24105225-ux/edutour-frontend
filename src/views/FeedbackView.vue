@@ -11,7 +11,7 @@
 
       <form @submit.prevent="submitFeedback" class="space-y-5">
         <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Mã đơn hàng hoặc Tên trường học:</label>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Mã đơn hoặc Tên trường học:</label>
           <input 
             v-model="form.school_name" 
             type="text" 
